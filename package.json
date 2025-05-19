@@ -1,0 +1,22 @@
+{
+  "name": "perf-watcher",
+  "version": "0.1.0",
+  "description": "A lightweight frontend performance monitoring tool",
+  "main": "src/perf-watcher.js",
+  "scripts": {
+    "start": "http-server . -p 3000",
+    "build": "echo 'Build process not implemented yet'"
+  },
+  "keywords": [
+    "performance",
+    "monitoring",
+    "frontend",
+    "javascript",
+    "metrics"
+  ],
+  "author": "hawthorne91",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
