@@ -68,6 +68,8 @@
 
         <button onclick="showMetrics()">Show Current Metrics</button>
         <button onclick="clearMetrics()">Clear Display</button>
+        <button onclick="downloadJSON()">Export JSON</button>
+        <button onclick="downloadCSV()">Export CSV</button>
     </div>
 
     <div id="metrics-display" class="container" style="display: none;">
@@ -133,6 +135,14 @@
         function clearMetrics() {
             const metricsDisplay = document.getElementById('metrics-display');
             metricsDisplay.style.display = 'none';
+        }
+
+        function downloadJSON() {
+            monitor.downloadJSON();
+        }
+
+        function downloadCSV() {
+            monitor.downloadCSV();
         }
 
         // Auto-show metrics after page loads

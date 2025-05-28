@@ -71,6 +71,59 @@ class PerfWatcher {
     getMetrics() {
         return this.metrics;
     }
+
+    exportToJSON() {
+        return JSON.stringify({
+            timestamp: new Date().toISOString(),
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+            metrics: this.metrics
+        }, null, 2);
+    }
+
+    exportToCSV() {
+        let csv = 'Metric,Value,Unit\n';
+
+        if (this.metrics.navigation) {
+            const nav = this.metrics.navigation;
+            csv += `DOM Content Loaded,${nav.domContentLoaded},ms\n`;
+            csv += `Load Complete,${nav.loadComplete},ms\n`;
+            csv += `DOM Interactive,${nav.domInteractive},ms\n`;
+            csv += `Total Load Time,${nav.totalLoadTime},ms\n`;
+        }
+
+        if (this.metrics.resources) {
+            this.metrics.resources.forEach(resource => {
+                const name = resource.name.split('/').pop() || resource.name;
+                csv += `${name} Duration,${resource.duration},ms\n`;
+                csv += `${name} Size,${resource.size},bytes\n`;
+            });
+        }
+
+        return csv;
+    }
+
+    downloadJSON() {
+        const data = this.exportToJSON();
+        this.downloadFile(data, 'performance-metrics.json', 'application/json');
+    }
+
+    downloadCSV() {
+        const data = this.exportToCSV();
+        this.downloadFile(data, 'performance-metrics.csv', 'text/csv');
+    }
+
+    downloadFile(content, filename, contentType) {
+        const blob = new Blob([content], { type: contentType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 }
 
 // Export for both CommonJS and browser
