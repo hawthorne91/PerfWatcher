@@ -9,10 +9,13 @@ class PerfWatcher {
             enableConsoleOutput: options.enableConsoleOutput || false,
             trackNavigation: options.trackNavigation !== false,
             trackResources: options.trackResources !== false,
+            trackMemory: options.trackMemory !== false,
+            trackCustomEvents: options.trackCustomEvents !== false,
             ...options
         };
 
         this.metrics = {};
+        this.customEvents = [];
         this.startTime = performance.now();
 
         if (this.options.trackNavigation) {
@@ -21,6 +24,10 @@ class PerfWatcher {
 
         if (this.options.trackResources) {
             this.trackResourceTiming();
+        }
+
+        if (this.options.trackMemory) {
+            this.trackMemoryUsage();
         }
     }
 
@@ -58,6 +65,48 @@ class PerfWatcher {
                 }
             }, 100);
         });
+    }
+
+    trackMemoryUsage() {
+        if ('memory' in performance) {
+            const updateMemoryMetrics = () => {
+                this.metrics.memory = {
+                    usedJSHeapSize: performance.memory.usedJSHeapSize,
+                    totalJSHeapSize: performance.memory.totalJSHeapSize,
+                    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
+                    timestamp: performance.now()
+                };
+
+                if (this.options.enableConsoleOutput) {
+                    console.log('Memory metrics:', this.metrics.memory);
+                }
+            };
+
+            // Initial measurement
+            updateMemoryMetrics();
+
+            // Update every 5 seconds
+            setInterval(updateMemoryMetrics, 5000);
+        } else {
+            console.warn('Memory API not supported in this browser');
+        }
+    }
+
+    trackCustomEvent(eventName, data = {}) {
+        if (!this.options.trackCustomEvents) return;
+
+        const event = {
+            name: eventName,
+            timestamp: performance.now(),
+            data: data
+        };
+
+        this.customEvents.push(event);
+        this.metrics.customEvents = this.customEvents;
+
+        if (this.options.enableConsoleOutput) {
+            console.log('Custom event tracked:', event);
+        }
     }
 
     getResourceType(url) {
