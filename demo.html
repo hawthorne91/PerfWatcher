@@ -18,6 +18,7 @@
             <button onclick="clearMetrics()">Clear Display</button>
             <button onclick="downloadJSON()">Export JSON</button>
             <button onclick="downloadCSV()">Export CSV</button>
+            <button onclick="testCustomEvent()">Test Custom Event</button>
         </div>
     </div>
 
@@ -32,6 +33,16 @@
             <h4>Resource Loading</h4>
             <div id="resource-content" class="loading">Loading resource metrics...</div>
         </div>
+
+        <div id="memory-metrics" class="metrics">
+            <h4>Memory Usage</h4>
+            <div id="memory-content" class="loading">Loading memory metrics...</div>
+        </div>
+
+        <div id="custom-metrics" class="metrics">
+            <h4>Custom Events</h4>
+            <div id="custom-content" class="loading">No custom events tracked yet</div>
+        </div>
     </div>
 
     <script src="src/perf-watcher.js"></script>
@@ -40,7 +51,9 @@
         const monitor = new PerfWatcher({
             enableConsoleOutput: true,
             trackNavigation: true,
-            trackResources: true
+            trackResources: true,
+            trackMemory: true,
+            trackCustomEvents: true
         });
 
         function showMetrics() {
@@ -78,6 +91,38 @@
                 resourceContent.innerHTML = '<div class="loading">Resource metrics not yet available</div>';
             }
 
+            // Show memory metrics
+            const memoryContent = document.getElementById('memory-content');
+            if (metrics.memory) {
+                const usedMB = (metrics.memory.usedJSHeapSize / 1024 / 1024).toFixed(2);
+                const totalMB = (metrics.memory.totalJSHeapSize / 1024 / 1024).toFixed(2);
+                const limitMB = (metrics.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2);
+                memoryContent.innerHTML = `
+                    <div class="metric-item">Used Heap: ${usedMB} MB</div>
+                    <div class="metric-item">Total Heap: ${totalMB} MB</div>
+                    <div class="metric-item">Heap Limit: ${limitMB} MB</div>
+                `;
+            } else {
+                memoryContent.innerHTML = '<div class="loading">Memory API not available in this browser</div>';
+            }
+
+            // Show custom events
+            const customContent = document.getElementById('custom-content');
+            if (metrics.customEvents && metrics.customEvents.length > 0) {
+                let eventsHtml = '';
+                metrics.customEvents.forEach((event, index) => {
+                    eventsHtml += `
+                        <div class="metric-item">
+                            <strong>${event.name}</strong> at ${event.timestamp.toFixed(2)}ms<br>
+                            ${event.data ? JSON.stringify(event.data) : 'No additional data'}
+                        </div>
+                    `;
+                });
+                customContent.innerHTML = eventsHtml;
+            } else {
+                customContent.innerHTML = '<div class="loading">No custom events tracked yet</div>';
+            }
+
             metricsDisplay.style.display = 'block';
         }
 
@@ -92,6 +137,18 @@
 
         function downloadCSV() {
             monitor.downloadCSV();
+        }
+
+        function testCustomEvent() {
+            const eventData = {
+                timestamp: Date.now(),
+                userId: 'demo_user',
+                action: 'test_button_click'
+            };
+            monitor.trackCustomEvent('demo_event', eventData);
+
+            // Refresh display to show new event
+            showMetrics();
         }
 
         // Auto-show metrics after page loads
